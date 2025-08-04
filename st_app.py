@@ -149,14 +149,14 @@ Pain Points:
             st.write("**Generated Headline:**")
             st.code(result['headline'], language='html')
             st.markdown("**Preview:**")
-            st.markdown(result['headline'])
+            st.markdown(result['headline'],     unsafe_allow_html=True)
         
         with col6:
             st.write("**Generated Subheadline:**")
             st.code(result['subheadline'], language='html')
             st.markdown("**Preview:**")
-            st.markdown(result['subheadline'])
-        
+            st.markdown(result['subheadline'], unsafe_allow_html=True)
+        print("\nHeadline:", result['headline'], "\nSubheadline:", result['subheadline'])
         # JSON output
         st.markdown("**JSON Output:**")
         json_output = {
