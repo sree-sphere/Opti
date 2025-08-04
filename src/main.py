@@ -24,17 +24,21 @@ app.add_middleware(
 
 # Pydantic models
 
+
 class LandingPageRequest(BaseModel):
     image_description: str
     original_headline: str
     original_subheadline: str
     marketing_insights: str
 
+
 class LandingPageResponse(BaseModel):
     headline: str
     subheadline: str
 
+
 # Core Analysis
+
 
 class ImageAnalyzer:
     """Handles image analysis using OpenAI Vision API"""
@@ -60,21 +64,24 @@ class ImageAnalyzer:
                                     "4. Main message or call to action\n"
                                     "5. Colors, composition, and style\n\n"
                                     "Provide a detailed description that can be used for personalized marketing content generation."
-                                )
+                                ),
                             },
                             {
                                 "type": "image_url",
-                                "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}
-                            }
-                        ]
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_base64}"
+                                },
+                            },
+                        ],
                     }
                 ],
-                max_tokens=500
+                max_tokens=500,
             )
             return response.choices[0].message.content
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Image analysis failed: {e}")
+
 
 # Core Content gen
 def clean_code_block(text: str) -> str:
@@ -85,11 +92,17 @@ def clean_code_block(text: str) -> str:
         return text.strip("`").strip()
     return text.strip("`").strip()
 
+
 class ContentGenerator:
     """Handles personalized content generation"""
 
     @staticmethod
-    def generate_personalized_content(image_analysis: str, original_headline: str, original_subheadline: str, marketing_insights: str) -> Dict[str, str]:
+    def generate_personalized_content(
+        image_analysis: str,
+        original_headline: str,
+        original_subheadline: str,
+        marketing_insights: str,
+    ) -> Dict[str, str]:
         """Generate personalized headline and subheadline"""
 
         prompt = (
@@ -111,11 +124,14 @@ class ContentGenerator:
             resp = openai.chat.completions.create(
                 model="gpt-4",
                 messages=[
-                    {"role": "system", "content": "You are an expert e-commerce copywriter."},
-                    {"role": "user", "content": prompt}
+                    {
+                        "role": "system",
+                        "content": "You are an expert e-commerce copywriter.",
+                    },
+                    {"role": "user", "content": prompt},
                 ],
                 max_tokens=500,
-                temperature=0.7
+                temperature=0.7,
             )
 
             resp_text = resp.choices[0].message.content.strip()
@@ -123,19 +139,26 @@ class ContentGenerator:
 
             return {
                 "headline": parsed.get("headline", "").strip(),
-                "subheadline": parsed.get("subheadline", "").strip()
+                "subheadline": parsed.get("subheadline", "").strip(),
             }
 
         except json.JSONDecodeError as e:
-            raise HTTPException(status_code=500, detail=f"Failed to parse JSON from LLM: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to parse JSON from LLM: {e}"
+            )
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Content generation failed: {e}")
+            raise HTTPException(
+                status_code=500, detail=f"Content generation failed: {e}"
+            )
+
 
 # API Endpoints
+
 
 @app.get("/")
 async def root():
     return {"message": "Optimeleon Landing Page Generator API is up."}
+
 
 @app.post("/analyze-image")
 async def analyze_image_endpoint(file: UploadFile = File(...)):
@@ -145,15 +168,17 @@ async def analyze_image_endpoint(file: UploadFile = File(...)):
     desc = ImageAnalyzer.analyze_image(img_bytes)
     return {"image_description": desc}
 
+
 @app.post("/generate-content", response_model=LandingPageResponse)
 async def generate_content(request: LandingPageRequest):
     out = ContentGenerator.generate_personalized_content(
         request.image_description,
         request.original_headline,
         request.original_subheadline,
-        request.marketing_insights
+        request.marketing_insights,
     )
     return LandingPageResponse(**out)
+
 
 # @app.post("/generate-from-image")
 # async def generate_from_image(file: UploadFile = File(...), original_headline: str = "", original_subheadline: str = "", marketing_insights: str = ""):
@@ -166,4 +191,5 @@ async def generate_content(request: LandingPageRequest):
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

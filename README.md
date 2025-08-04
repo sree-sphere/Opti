@@ -82,6 +82,10 @@ cd Opti
 4. Tests
 - `PYTHONPATH=. pytest --cov=src --cov-report=term-missing --cov-report=html`
 
+## Code Quality
+
+- Lint: Used Black for consistent formatting: `black src tests`
+- Ran tests locally `pytest --cov=src --cov-report=term-missing`
 ---
 
 ## Notes

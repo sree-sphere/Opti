@@ -9,9 +9,14 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-st.set_page_config(page_title="Optimeleon Landing Page Generator", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="Optimeleon Landing Page Generator",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+
 
 def call_api(endpoint, method="GET", data=None, files=None):
     """Helper function to call FastAPI endpoints"""
@@ -24,51 +29,67 @@ def call_api(endpoint, method="GET", data=None, files=None):
                 response = requests.post(url, json=data)
         else:
             response = requests.get(url)
-        
+
         if response.status_code == 200:
             return response.json(), None
         else:
             return None, f"API Error: {response.status_code} - {response.text}"
     except requests.exceptions.ConnectionError:
-        return None, "Cannot connect to API. Make sure FastAPI server is running on localhost:8000"
+        return (
+            None,
+            "Cannot connect to API. Make sure FastAPI server is running on localhost:8000",
+        )
     except Exception as e:
         return None, f"Error: {str(e)}"
 
+
 def main():
-    st.header('Optimeleon Landing Page Generator')
-    
+    st.header("Optimeleon Landing Page Generator")
+
     col1, col2 = st.columns([1, 1])
     with col1:
-        st.markdown('Advertisement Image')
-        uploaded_file = st.file_uploader("Upload an advertisement image",type=["jpg", "jpeg", "png", "webp"])
-        
+        st.markdown("Advertisement Image")
+        uploaded_file = st.file_uploader(
+            "Upload an advertisement image", type=["jpg", "jpeg", "png", "webp"]
+        )
+
         if uploaded_file:
             # showing uploaded image
             image = Image.open(uploaded_file)
             st.image(image, caption="Uploaded Advertisement", use_container_width=True)
-            
+
             # VLM Image Analysis
             with st.expander("Image Analysis", expanded=True):
                 if st.button("Analyze Image"):
                     with st.spinner("Analyzing image..."):
-                        files = {"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-                        analysis_data, analysis_error = call_api("/analyze-image", "POST", files=files)
-                        
+                        files = {
+                            "file": (
+                                uploaded_file.name,
+                                uploaded_file.getvalue(),
+                                uploaded_file.type,
+                            )
+                        }
+                        analysis_data, analysis_error = call_api(
+                            "/analyze-image", "POST", files=files
+                        )
+
                         if analysis_error:
                             st.markdown(analysis_error)
                         else:
-                            st.session_state['image_analysis'] = analysis_data['image_description']
+                            st.session_state["image_analysis"] = analysis_data[
+                                "image_description"
+                            ]
                             st.write("**Image Analysis:**")
-                            st.write(analysis_data['image_description'])
-    
+                            st.write(analysis_data["image_description"])
+
     with col2:
-        st.markdown('Original Content')
-        
+        st.markdown("Original Content")
+
         # headline input
         headline = st.text_area(
             "Headline (HTML)",
             height=150,
-            value='''<h1 class="font-extrabold text-4xl lg:text-6xl tracking-tight md:-mb-4 flex flex-col">
+            value="""<h1 class="font-extrabold text-4xl lg:text-6xl tracking-tight md:-mb-4 flex flex-col">
 <span class="relative">Crush Your Personal Best with Nike Vaporfly 3 </span>
 <span class="whitespace-nowrap relative ">
 <span class="mr-3 sm:mr-4 md:mr-5">Engineered for </span>
@@ -77,19 +98,19 @@ def main():
 <span class="relative text-neutral">Race-Day Speed</span>
 </span>
 </span>
-</h1>'''
+</h1>""",
         )
-        
+
         # subheadline input
         subheadline = st.text_area(
             "Subheadline",
             height=100,
-            value='''<p class="text-lg opacity-80 leading-relaxed">Maximize your race-day potential with cutting-edge energy return, lightweight durability, and a sleek, aerodynamic design that keeps you ahead of the competition.</p>''',
-            help="Paste the original subheadline with its HTML structure"
+            value="""<p class="text-lg opacity-80 leading-relaxed">Maximize your race-day potential with cutting-edge energy return, lightweight durability, and a sleek, aerodynamic design that keeps you ahead of the competition.</p>""",
+            help="Paste the original subheadline with its HTML structure",
         )
-    
+
     # Marketing Insights
-    st.markdown('Marketing Insights')
+    st.markdown("Marketing Insights")
     marketing_insights = st.text_area(
         "Marketing Insights",
         height=300,
@@ -113,40 +134,42 @@ Pain Points:
 - Difficulty finding shoes that maximize speed without compromising comfort
 - Challenge of finding balance between comfort, durability, and performance
 - Limited selection of stylish running shoes that meet high-performance standards""",
-        help="Provide detailed marketing insights about the product, target audience, and pain points"
+        help="Provide detailed marketing insights about the product, target audience, and pain points",
     )
 
     # Section for generation of content
-    st.markdown('Generate Personalized Content')
+    st.markdown("Generate Personalized Content")
 
     if st.button("Generate Content", use_container_width=True):
-            if 'image_analysis' not in st.session_state:
-                st.error("Please analyze an image first!")
-            else:
-                with st.spinner("Generating personalized content..."):
-                    data = {
-                        "image_description": st.session_state['image_analysis'],
-                        "original_headline": headline,
-                        "original_subheadline": subheadline,
-                        "marketing_insights": marketing_insights
-                    }
-                    result_data, result_error = call_api("/generate-content", "POST", data=data)
-                    if result_error:
-                        st.markdown(result_error)
-                    else:
-                        st.session_state['generated_content'] = result_data
-    
-    # Results
-    if 'generated_content' in st.session_state:
-        st.markdown('Generated Results')
+        if "image_analysis" not in st.session_state:
+            st.error("Please analyze an image first!")
+        else:
+            with st.spinner("Generating personalized content..."):
+                data = {
+                    "image_description": st.session_state["image_analysis"],
+                    "original_headline": headline,
+                    "original_subheadline": subheadline,
+                    "marketing_insights": marketing_insights,
+                }
+                result_data, result_error = call_api(
+                    "/generate-content", "POST", data=data
+                )
+                if result_error:
+                    st.markdown(result_error)
+                else:
+                    st.session_state["generated_content"] = result_data
 
-        result = st.session_state['generated_content']
-        
+    # Results
+    if "generated_content" in st.session_state:
+        st.markdown("Generated Results")
+
+        result = st.session_state["generated_content"]
+
         # Display image analysis if available
-        if 'image_analysis' in result:
+        if "image_analysis" in result:
             with st.expander("Image Analysis Used"):
-                st.write(result['image_analysis'])
-        
+                st.write(result["image_analysis"])
+
         custom_html = f"""
         <div style="
             padding: 2rem;
@@ -164,13 +187,19 @@ Pain Points:
         # JSON output
         st.markdown("**JSON Output:**")
         json_output = {
-            "headline": result['headline'],
-            "subheadline": result['subheadline']
+            "headline": result["headline"],
+            "subheadline": result["subheadline"],
         }
         st.json(json_output)
-        
+
         # Download
-        st.download_button(label="Download as JSON", data=json.dumps(json_output, indent=2), file_name="generated_content.json", mime="application/json")
+        st.download_button(
+            label="Download as JSON",
+            data=json.dumps(json_output, indent=2),
+            file_name="generated_content.json",
+            mime="application/json",
+        )
+
 
 if __name__ == "__main__":
     main()
