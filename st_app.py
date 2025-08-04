@@ -3,11 +3,11 @@ import requests
 import json
 from PIL import Image
 import io
+import os
 
 st.set_page_config(page_title="Optimeleon Landing Page Generator", layout="wide", initial_sidebar_state="expanded")
 
-# temp
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
 
 def call_api(endpoint, method="GET", data=None, files=None):
     """Helper function to call FastAPI endpoints"""
