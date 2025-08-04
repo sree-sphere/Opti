@@ -4,6 +4,10 @@ import json
 from PIL import Image
 import io
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 st.set_page_config(page_title="Optimeleon Landing Page Generator", layout="wide", initial_sidebar_state="expanded")
 

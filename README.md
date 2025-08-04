@@ -79,6 +79,9 @@ cd Opti
     `uvicorn main:app --reload`
     `streamlit run st_app.py`
 
+4. Tests
+- `PYTHONPATH=. pytest --cov=src --cov-report=term-missing --cov-report=html`
+
 ---
 
 ## Notes

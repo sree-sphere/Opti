@@ -155,14 +155,14 @@ async def generate_content(request: LandingPageRequest):
     )
     return LandingPageResponse(**out)
 
-@app.post("/generate-from-image")
-async def generate_from_image(file: UploadFile = File(...), original_headline: str = "", original_subheadline: str = "", marketing_insights: str = ""):
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="File must be an image.")
-    img_bytes = await file.read()
-    img_desc = ImageAnalyzer.analyze_image(img_bytes)
-    out = ContentGenerator.generate_personalized_content(img_desc, original_headline, original_subheadline, marketing_insights)
-    return {"image_analysis": img_desc, **out}
+# @app.post("/generate-from-image")
+# async def generate_from_image(file: UploadFile = File(...), original_headline: str = "", original_subheadline: str = "", marketing_insights: str = ""):
+#     if not file.content_type.startswith("image/"):
+#         raise HTTPException(status_code=400, detail="File must be an image.")
+#     img_bytes = await file.read()
+#     img_desc = ImageAnalyzer.analyze_image(img_bytes)
+#     out = ContentGenerator.generate_personalized_content(img_desc, original_headline, original_subheadline, marketing_insights)
+#     return {"image_analysis": img_desc, **out}
 
 if __name__ == "__main__":
     import uvicorn
