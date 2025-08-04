@@ -130,10 +130,14 @@ class ContentGenerator:
                 elif line.startswith("SUBHEADLINE:"):
                     sd = line.split("SUBHEADLINE:", 1)[1].strip()
 
+            hd_clean = hd.strip('"').strip()
+            sd_clean = sd.strip('"').strip()
+
             return {
-                "headline": h["template"].replace("{CONTENT}", hd),
-                "subheadline": s["template"].replace("{CONTENT}", sd)
+                "headline": h["template"].replace("{CONTENT}", hd_clean),
+                "subheadline": s["template"].replace("{CONTENT}", sd_clean)
             }
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Content generation failed: {e}")
 

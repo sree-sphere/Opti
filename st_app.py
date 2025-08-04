@@ -143,19 +143,34 @@ Pain Points:
             with st.expander("Image Analysis Used"):
                 st.write(result['image_analysis'])
         
-        col5, col6 = st.columns([1, 1])
+        custom_html = f"""
+        <div style="
+            padding: 2rem;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ffffff, #f9fafb);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            font-family: 'Helvetica Neue', sans-serif;
+        ">
+        {result['headline']}
+        {result['subheadline']}
+        </div>
+        """
+        st.components.v1.html(custom_html, height=400)
+
         
-        with col5:
-            st.write("**Generated Headline:**")
-            st.code(result['headline'], language='html')
-            st.markdown("**Preview:**")
-            st.markdown(result['headline'],     unsafe_allow_html=True)
+        # col5, col6 = st.columns([1, 1])
         
-        with col6:
-            st.write("**Generated Subheadline:**")
-            st.code(result['subheadline'], language='html')
-            st.markdown("**Preview:**")
-            st.markdown(result['subheadline'], unsafe_allow_html=True)
+        # with col5:
+        #     st.write("**Generated Headline:**")
+        #     st.code(result['headline'], language='html')
+        #     st.markdown("**Preview:**")
+        #     st.markdown(result['headline'],     unsafe_allow_html=True)
+        
+        # with col6:
+        #     st.write("**Generated Subheadline:**")
+        #     st.code(result['subheadline'], language='html')
+        #     st.markdown("**Preview:**")
+        #     st.markdown(result['subheadline'], unsafe_allow_html=True)
         print("\nHeadline:", result['headline'], "\nSubheadline:", result['subheadline'])
         # JSON output
         st.markdown("**JSON Output:**")
