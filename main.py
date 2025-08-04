@@ -77,39 +77,34 @@ class ImageAnalyzer:
             raise HTTPException(status_code=500, detail=f"Image analysis failed: {e}")
 
 # Core Content gen
+def clean_code_block(text: str) -> str:
+    """
+    Removes markdown-style triple backticks and surrounding whitespace.
+    """
+    if text.startswith("```") and text.endswith("```"):
+        return text.strip("`").strip()
+    return text.strip("`").strip()
 
 class ContentGenerator:
     """Handles personalized content generation"""
 
     @staticmethod
-    def extract_html_structure(html_content: str) -> Dict[str, str]:
-        """Extract text content and preserve HTML structure template"""
-        text_content = re.sub(r"<[^>]+>", "", html_content).strip()
-        structure_template = re.sub(r">(.*?)<", r">{CONTENT}<", html_content)
-        return {"text": text_content, "template": structure_template}
-
-    @staticmethod
     def generate_personalized_content(image_analysis: str, original_headline: str, original_subheadline: str, marketing_insights: str) -> Dict[str, str]:
         """Generate personalized headline and subheadline"""
-        h = ContentGenerator.extract_html_structure(original_headline)
-        s = ContentGenerator.extract_html_structure(original_subheadline)
 
         prompt = (
+            f"You are a marketing copywriter. Based on the following:\n\n"
             f"IMAGE ANALYSIS:\n{image_analysis}\n\n"
-            f"ORIGINAL HEADLINE (text): {h['text']}\n"
-            f"HEADLINE TEMPLATE: {h['template']}\n\n"
-            f"ORIGINAL SUBHEADLINE (text): {s['text']}\n"
-            f"SUBHEADLINE TEMPLATE: {s['template']}\n\n"
             f"MARKETING INSIGHTS:\n{marketing_insights}\n\n"
-            "Requirements:\n"
-            "1. Match length & tone\n"
-            "2. Include image themes\n"
-            "3. Highlight product benefits\n"
-            "4. Reuse HTML structure\n"
-            "5. Conversion-focused\n\n"
-            "Respond:\n"
-            "HEADLINE: [your text]\n"
-            "SUBHEADLINE: [your text]"
+            f"The user has provided this HEADLINE HTML structure:\n{original_headline}\n\n"
+            f"And this SUBHEADLINE HTML structure:\n{original_subheadline}\n\n"
+            "Extract only the visible *text content* from each HTML structure, then rewrite it to be more compelling, emotionally resonant, and conversion-optimized, while preserving the same structure, length, and tone.\n\n"
+            "Return only a valid JSON object in the following format:\n"
+            "{\n"
+            '  "headline": "<h1>...updated HTML...</h1>",\n'
+            '  "subheadline": "<p>...updated HTML...</p>"\n'
+            "}\n"
+            "Do NOT include any markdown formatting, backticks, or explanation text—only valid JSON."
         )
 
         try:
@@ -119,25 +114,20 @@ class ContentGenerator:
                     {"role": "system", "content": "You are an expert e-commerce copywriter."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=300,
+                max_tokens=500,
                 temperature=0.7
             )
-            body = resp.choices[0].message.content.strip().splitlines()
-            hd, sd = "", ""
-            for line in body:
-                if line.startswith("HEADLINE:"):
-                    hd = line.split("HEADLINE:", 1)[1].strip()
-                elif line.startswith("SUBHEADLINE:"):
-                    sd = line.split("SUBHEADLINE:", 1)[1].strip()
 
-            hd_clean = hd.strip('"').strip()
-            sd_clean = sd.strip('"').strip()
+            resp_text = resp.choices[0].message.content.strip()
+            parsed = json.loads(resp_text)
 
             return {
-                "headline": h["template"].replace("{CONTENT}", hd_clean),
-                "subheadline": s["template"].replace("{CONTENT}", sd_clean)
+                "headline": parsed.get("headline", "").strip(),
+                "subheadline": parsed.get("subheadline", "").strip()
             }
 
+        except json.JSONDecodeError as e:
+            raise HTTPException(status_code=500, detail=f"Failed to parse JSON from LLM: {e}")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Content generation failed: {e}")
 
